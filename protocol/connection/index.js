@@ -40,7 +40,7 @@ module.exports = class Connection {
     var header, offset;
     [header, offset] = Header.decodeResponse(data);
     if(this.requests.length < header.correlationId) {
-      return this.onError(new Error('No correlation id found'));
+      return this.onError(new Error('Unknown correlation id received from broker'));
     }
 
     this.requests[header.correlationId](data);
