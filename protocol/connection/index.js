@@ -5,6 +5,7 @@ module.exports = class Connection {
 
   constructor(options) {
     this.options = options;
+    // TODO: Don't continually add to array for every request
     this.requests = [];
     this.socket = null
   }
