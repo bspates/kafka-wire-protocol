@@ -3,23 +3,35 @@ var Header = require('../api/header');
 
 module.exports = class Connection {
 
-  constructor(options, cb) {
+  constructor(options) {
+    this.options = options;
     this.requests = [];
-    this.socket = Connection.connect(options.host, options.port, (socket) => {
-      console.log('connected');
-      cb(socket);
-    });
+    this.socket = null
+  }
 
-    this.socket.on('data', this.onData.bind(this));
-    this.socket.on('error', this.onError.bind(this));
-    this.socket.on('end', this.onEnd.bind(this));
+  connect(cb) {
+    if(this.socket == null) {
+      this.socket = Connection.connect(this.options.host, this.options.port, (socket) => {
+        console.log('connected');
+        cb(socket);
+      });
+
+      this.socket.on('data', this.onData.bind(this));
+      this.socket.on('error', this.onError.bind(this));
+      this.socket.on('end', this.onEnd.bind(this));
+
+    } else {
+      setImmediate(() => {
+        cb(this.socket);
+      });
+    }
   }
 
   send(data, cb) {
-    this.requests.push((data) => {
-      cb(null, data);
+    this.connect((socket) => {
+      this.requests.push(cb);
+      socket.write(data);
     });
-    this.socket.write(data);
   }
 
   onData(data) {
