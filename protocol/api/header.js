@@ -14,7 +14,7 @@ module.exports = class Header {
     offset = buffer.writeInt16BE(apiKey, offset); // api key
     offset = buffer.writeInt16BE(0, offset); // version
     offset = buffer.writeInt32BE(correlationId, offset); // correlation id
-    return types.encodeString(offset, clientId, buffer);
+    return types.encodeString(clientId, buffer, offset);
   }
 
   /**
@@ -24,8 +24,8 @@ module.exports = class Header {
    */
   static decodeResponse(buffer, offset = 0) {
     var size, correlationId;
-    [offset, size] = types.decodeInt32(offset, buffer);
-    [offset, correlationId] = types.decodeInt32(offset, buffer);
+    [size, offset] = types.decodeInt32(buffer, offset);
+    [correlationId, offset] = types.decodeInt32(buffer, offset);
     return [{
       size: size,
       correlationId: correlationId

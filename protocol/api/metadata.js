@@ -18,7 +18,7 @@ module.exports = class Metadata {
     var offset = 0;
     var apiKey = definitions.getApiKey(API_NAME);
     offset = Header.encodeRequest(apiKey, correlationId, clientId, buffer, 4);
-    offset = types.encodeArray(offset, topics, types.encodeString, buffer);
+    offset = types.encodeArray(topics, types.encodeString, buffer, offset);
 
     buffer.writeInt32BE(offset, 0);
     return buffer.slice(0, offset);
@@ -33,8 +33,8 @@ module.exports = class Metadata {
     var header, nodes, topics;
 
     [header, offset] = Header.decodeResponse(buffer, offset);
-    [offset, nodes] =  types.decodeArray(offset, Metadata.decodeNodes, buffer);
-    [offset, topics] = types.decodeArray(offset, Metadata.decodeTopics, buffer);
+    [nodes, offset] =  types.decodeArray(Metadata.decodeNodes, buffer, offset);
+    [topics, offset] = types.decodeArray(Metadata.decodeTopics, buffer, offset);
 
     return {
       header: header,
@@ -43,52 +43,66 @@ module.exports = class Metadata {
     };
   }
 
-  static decodeNodes(offset, buffer) {
+  /**
+   * @param  buffer Buffer
+   * @param  int    offset
+   * @return array  [nodes, offset]
+   */
+  static decodeNodes(buffer, offset) {
     var nodeId, host, port;
 
-    [offset, nodeId] = types.decodeInt32(offset, buffer);
-    [offset, host] = types.decodeString(offset, buffer);
-    [offset, port] = types.decodeInt32(offset, buffer);
+    [nodeId, offset] = types.decodeInt32(buffer, offset);
+    [host, offset] = types.decodeString(buffer, offset);
+    [port, offset] = types.decodeInt32(buffer, offset);
 
     return [
-      offset,
       {
         nodeId: nodeId,
         host: host,
         port: port
-      }
+      }, offset
     ];
   }
 
-  static decodeTopics(offset, buffer) {
+  /**
+   * @param  buffer Buffer
+   * @param  int    offset
+   * @return array  [topics, offset]
+   */
+  static decodeTopics(buffer, offset) {
     var topicError, topic, partitions;
 
-    [offset, topicError] = types.decodeInt16(offset, buffer);
-    [offset, topic] = types.decodeString(offset, buffer);
-    [offset, partitions] = types.decodeArray(offset, Metadata.decodePartitions, buffer);
+    [topicError, offset] = types.decodeInt16(buffer, offset);
+    [topic, offset] = types.decodeString(buffer, offset);
+    [partitions, offset] = types.decodeArray(Metadata.decodePartitions, buffer, offset);
 
-    return [offset, {
+    return [{
       topicError: topicError,
       topic: topic,
       partitions: partitions
-    }];
+    }, offset];
   }
 
-  static decodePartitions(offset, buffer) {
+  /**
+   * @param  buffer Buffer
+   * @param  int    offset
+   * @return array  [partitions, offset]
+   */
+  static decodePartitions(buffer, offset) {
     var err, id, leader, replicas, isr;
 
-    [offset, err] = types.decodeInt16(offset, buffer);
-    [offset, id] = types.decodeInt32(offset, buffer);
-    [offset, leader] = types.decodeInt32(offset, buffer);
-    [offset, replicas] = types.decodeInt32(offset, buffer);
-    [offset, isr] = types.decodeInt32(offset, buffer);
+    [err, offset] = types.decodeInt16(buffer, offset);
+    [id, offset] = types.decodeInt32(buffer, offset);
+    [leader, offset] = types.decodeInt32(buffer, offset);
+    [replicas, offset] = types.decodeInt32(buffer, offset);
+    [isr, offset] = types.decodeInt32(buffer, offset);
 
-    return [offset, {
+    return [{
       errorCode: err,
       id: id,
       leader: leader,
       replicas: replicas,
       isr: isr
-    }];
+    }, offset];
   }
 }
