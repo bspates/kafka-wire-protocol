@@ -1,9 +1,18 @@
 module.exports = class Types {
+
+  static encodeInt32(value, buffer, offset = 0) {
+    return buffer.writeInt32BE(value, offset);
+  }
+
   static decodeInt32(offset, buffer) {
     return [
       offset + 4,
       buffer.readInt32BE(offset)
     ];
+  }
+
+  static encodeInt16(value, buffer, offset = 0) {
+    return buffer.writeInt16BE(value, offset);
   }
 
   static decodeInt16(offset, buffer) {
@@ -14,7 +23,6 @@ module.exports = class Types {
   }
 
   static encodeArray(offset, arr, typeMethod, buffer) {
-    // console.log(arr.length);
     offset = buffer.writeInt32BE(arr.length, offset);
     arr.forEach((data) => {
       offset = typeMethod(offset, data, buffer);

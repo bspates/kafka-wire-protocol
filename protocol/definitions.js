@@ -247,6 +247,9 @@ const ERRORS = [
 ];
 
 module.exports = {
+  getApiKey: function(type) {
+    return API_KEYS.indexOf(type);
+  },
   API_KEYS: API_KEYS,
   ERRORS: ERRORS
 };
