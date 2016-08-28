@@ -1,0 +1,23 @@
+{
+  "name": "kafkaesq",
+  "version": "0.0.1",
+  "description": "Pure JS Kafka Client (batteries not included) ",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "kafka",
+    "node",
+    "publish",
+    "subscribe",
+    "pubsub",
+    "queues",
+    "messages"
+  ],
+  "author": "Brian Spates",
+  "license": "MIT",
+  "dependencies": {
+    "crc-32": "^0.4.1"
+  }
+}
