@@ -41,7 +41,18 @@ module.exports = class Types {
     return [resultArr, offset];
   }
 
+  static encodeArraySize(arr, buffer, offset = 0) {
+    return buffer.writeInt32BE(arr.length, offset);
+  }
+
+  static decodeArraySize(buffer, offset = 0) {
+    return Types.decodeInt32(buffer, offset);
+  }
+
   static encodeString(str, buffer, offset = 0) {
+    if(str == null) {
+      return buffer.writeInt16BE(-1, offset);
+    }
     var length = Buffer.byteLength(str, 'utf8');
 
     offset = buffer.writeInt16BE(length, offset);

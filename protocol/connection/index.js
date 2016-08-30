@@ -1,5 +1,7 @@
 var net = require('net');
 var Header = require('../api/header');
+var types = require('../types');
+var parser = require('../parser');
 
 module.exports = class Connection {
 
@@ -37,13 +39,21 @@ module.exports = class Connection {
 
   onData(data) {
     console.log('data');
-    var header, offset;
-    [header, offset] = Header.decodeResponse(data);
+    var header, offset, size;
+    [size, offset] = types.decodeInt32(data, 0);
+
+    if(size <= 0) {
+      console.log('empty response');
+      return;
+    }
+
+    [header, offset] = parser.decode(Header.response, data, offset);
+
     if(this.requests.length < header.correlationId) {
       return this.onError(new Error('Unknown correlation id received from broker'));
     }
 
-    this.requests[header.correlationId](data);
+    this.requests[header.correlationId](null, data.slice(offset));
   }
 
   onError(err) {
