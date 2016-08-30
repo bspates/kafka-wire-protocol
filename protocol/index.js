@@ -41,7 +41,7 @@ module.exports = class Protocol {
   }
 
   metadata(topics, cb) {
-    var buffer = new Buffer(64);
+    var buffer = Buffer.alloc(64);
     this.send(topics, api.Metadata, buffer, 0, cb);
   }
 };
