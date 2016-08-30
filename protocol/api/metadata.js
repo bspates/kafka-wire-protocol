@@ -1,5 +1,6 @@
 module.exports = {
   name: 'Metadata',
+  version: 0,
   request: [
     {topics: 'array'},
     [

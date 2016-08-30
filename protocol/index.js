@@ -19,7 +19,7 @@ module.exports = class Protocol {
 
     offset = parser.encode({
       apiKey: definitions.getApiKey(apiDef.name),
-      version: this.options.apiVersion,
+      version: apiDef.version,
       correlationId: this.client.requests.length,
       clientId: this.options.clientId
     }, api.Header.request, buffer, offset + REQUEST_OFFSET);
