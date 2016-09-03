@@ -5,5 +5,6 @@
  */
 module.exports = {
   Metadata: require('./metadata'),
-  Header: require('./header')
+  Header: require('./header'),
+  Produce: require('./produce')
 };

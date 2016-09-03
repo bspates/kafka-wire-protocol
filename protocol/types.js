@@ -22,6 +22,17 @@ module.exports = class Types {
     ];
   }
 
+  static encodeInt64(value, buffer, offset = 0) {
+    return buffer.writeIntBE(value, offset, 6);
+  }
+
+  static decodeInt64(buffer, offset = 0) {
+    return [
+      buffer.readIntBE(offset, 6),
+      offset + 6
+    ];
+  }
+
   static encodeArray(arr, typeMethod, buffer, offset = 0) {
     offset = buffer.writeInt32BE(arr.length, offset);
     arr.forEach((data) => {
@@ -68,5 +79,29 @@ module.exports = class Types {
     var strResult = buffer.toString('utf8', offset, strEnd);
 
     return [strResult, strEnd];
+  }
+
+  static encodeBytes(bytes, buffer, offset = 0) {
+    if(bytes == null) {
+      return Types.encodeInt32(-1, buffer, offset);
+    }
+
+    var length = Buffer.byteLength(bytes, 'utf8');
+    offset = Types.encodeInt32(length, buffer, offset);
+    offset = offset + buffer.write(bytes, offset, length, 'utf8');
+    return offset;
+  }
+
+  static decodeBytes(buffer, offset = 0) {
+    var length;
+    [length, offset] = Types.decodeInt32(buffer, offset);
+    if(length === -1) return null
+    if(length === 0) return '';
+    var bytesEnd = offset + length;
+
+    return [
+      buffer.toString('utf8', offset, bytesEnd),
+      bytesEnd
+    ];
   }
 };

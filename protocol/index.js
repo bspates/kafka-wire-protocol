@@ -9,8 +9,8 @@ const REQUEST_OFFSET = 4;
 
 module.exports = class Protocol {
 
-  constructor(options) {
-    this.client = new Connection(options);
+  constructor(options, cb) {
+    this.client = new Connection(options, cb);
     this.options = options;
   }
 
@@ -43,5 +43,15 @@ module.exports = class Protocol {
   metadata(topics, cb) {
     var buffer = Buffer.alloc(64);
     this.send(topics, api.Metadata, buffer, 0, cb);
+  }
+
+  produce(topics, cb) {
+    var buffer = new Buffer(1028);
+    var request = {
+      acks: this.options.acks,
+      timeout: this.options.timeout,
+      topics: topics
+    }
+    this.send(request, api.Produce, buffer, 0, cb);
   }
 };
