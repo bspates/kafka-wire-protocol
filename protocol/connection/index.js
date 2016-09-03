@@ -5,55 +5,62 @@ var parser = require('../parser');
 
 module.exports = class Connection {
 
-  constructor(options) {
+  constructor(options, cb) {
     this.options = options;
+
     // TODO: Don't continually add to array for every request
     this.requests = [];
-    this.socket = null
-  }
+    this.socket = Connection.connect(this.options.host, this.options.port, (socket) => {
+      this.socket = socket;
+      console.log('connected');
+      cb(socket);
+    });
 
-  connect(cb) {
-    if(this.socket == null) {
-      this.socket = Connection.connect(this.options.host, this.options.port, (socket) => {
-        console.log('connected');
-        cb(socket);
-      });
-
-      this.socket.on('data', this.onData.bind(this));
-      this.socket.on('error', this.onError.bind(this));
-      this.socket.on('end', this.onEnd.bind(this));
-
-    } else {
-      setImmediate(() => {
-        cb(this.socket);
-      });
-    }
+    this.socket.on('data', this.onData.bind(this));
+    this.socket.on('error', this.onError.bind(this));
+    this.socket.on('end', this.onEnd.bind(this));
+    this.socket.on('drain', () => console.log('drain'));
+    this.socket.on('close', () => console.log('close'));
   }
 
   send(data, cb) {
-    this.connect((socket) => {
-      this.requests.push(cb);
-      socket.write(data);
+    this.requests.push(cb);
+    setImmediate(() => {
+      this.socket.write(data, 'utf8', () => {
+        console.log('written out');
+        this.forceFlush(() => console.log('and done'));
+      });
     });
   }
 
+  forceFlush(cb) {
+    this.socket.write("\n\n\n\n", 'utf8', cb);
+  }
+
   onData(data) {
-    console.log('data');
-    var header, offset, size;
-    [size, offset] = types.decodeInt32(data, 0);
+    setImmediate(() => {
+      console.log('data');
+      var header, offset, size;
+      [size, offset] = types.decodeInt32(data, 0);
 
-    if(size <= 0) {
-      console.log('empty response');
-      return;
-    }
+      if(size <= 0) {
+        console.log('empty response');
+        return;
+      }
 
-    [header, offset] = parser.decode(Header.response, data, offset);
+      if(size !== data.length) {
+        console.log('did not receive whole response');
+        return;
+      }
 
-    if(this.requests.length < header.correlationId) {
-      return this.onError(new Error('Unknown correlation id received from broker'));
-    }
+      [header, offset] = parser.decode(Header.response, data, offset);
 
-    this.requests[header.correlationId](null, data.slice(offset));
+      if(this.requests.length < header.correlationId) {
+        return this.onError(new Error('Unknown correlation id received from broker'));
+      }
+
+      this.requests[header.correlationId](null, data.slice(offset));
+    });
   }
 
   onError(err) {
