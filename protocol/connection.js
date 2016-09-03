@@ -1,7 +1,7 @@
 var net = require('net');
-var Header = require('../api/header');
-var types = require('../types');
-var parser = require('../parser');
+var Header = require('./api/header');
+var types = require('./types');
+var parser = require('./parser');
 
 module.exports = class Connection {
 
@@ -45,11 +45,6 @@ module.exports = class Connection {
 
       if(size <= 0) {
         console.log('empty response');
-        return;
-      }
-
-      if(size !== data.length) {
-        console.log('did not receive whole response');
         return;
       }
 

@@ -1,5 +1,6 @@
 var types = require('./types');
 var api = require('./api')
+var ParseError = require('./errors/parse');
 
 module.exports = class Parser {
   static encode(data, template, buffer, offset) {
@@ -9,7 +10,7 @@ module.exports = class Parser {
 
       var key = Object.keys(entry);
       if(key.length !== 1) {
-        throw new Error('Invalid template');
+        throw new ParseError('Invalid api template');
       }
       key = key[0];
 
@@ -43,7 +44,7 @@ module.exports = class Parser {
           break;
 
         default:
-          throw new Error('what' + entry[key]);
+          throw new ParseError('Invalid type: ' + entry[key]);
       }
     }
 
@@ -57,7 +58,7 @@ module.exports = class Parser {
 
       var key = Object.keys(entry);
       if(key.length !== 1) {
-        throw new Error('Invalid template');
+        throw new ParseError('Invalid api template');
       }
       key = key[0];
       var value;
@@ -99,7 +100,7 @@ module.exports = class Parser {
           break;
 
         default:
-          throw new Error('what ' + entry[key]);
+          throw new ParseError('Invalid type: ' + entry[key]);
       }
     }
     return [result, offset];

@@ -6,6 +6,7 @@ var types = require('./types');
 
 // Always leave room for the size (int32) at the start of the request
 const REQUEST_OFFSET = 4;
+const DEFAULT_BUFFER_SIZE = 2048;
 
 module.exports = class Protocol {
 
@@ -14,7 +15,16 @@ module.exports = class Protocol {
     this.options = options;
   }
 
-  send(data, apiDef, buffer, offset, cb) {
+  send(data, apiDef, cb, options) {
+    var buffer, offset;
+    if(options) {
+      buffer = options.buffer;
+      offset = options.offset;
+    } else {
+      offset = 0;
+      buffer = Buffer.alloc(DEFAULT_BUFFER_SIZE);
+    }
+
     var startOffset = offset;
 
     offset = parser.encode({
@@ -40,18 +50,16 @@ module.exports = class Protocol {
     });
   }
 
-  metadata(topics, cb) {
-    var buffer = Buffer.alloc(64);
-    this.send(topics, api.Metadata, buffer, 0, cb);
+  metadata(topics, cb, options) {
+    this.send(topics, api.Metadata, cb, options);
   }
 
-  produce(topics, cb) {
-    var buffer = new Buffer(1028);
+  produce(topics, cb, options) {
     var request = {
       acks: this.options.acks,
       timeout: this.options.timeout,
       topics: topics
     }
-    this.send(request, api.Produce, buffer, 0, cb);
+    this.send(request, api.Produce, cb, options);
   }
 };

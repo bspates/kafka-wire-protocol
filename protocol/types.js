@@ -1,35 +1,49 @@
-module.exports = class Types {
+var ParseError = require('./errors/parse');
 
+const INT32_SIZE = 4;
+const INT16_SIZE = 2;
+const INT64_SIZE = 6;
+
+module.exports = class Types {
   static encodeInt32(value, buffer, offset = 0) {
+    Types.validateOffset(buffer, offset + INT32_SIZE);
     return buffer.writeInt32BE(value, offset);
   }
 
   static decodeInt32(buffer, offset = 0) {
+    let endOffset = offset + INT32_SIZE;
+    Types.validateOffset(buffer, endOffset);
     return [
       buffer.readInt32BE(offset),
-      offset + 4
+      endOffset
     ];
   }
 
   static encodeInt16(value, buffer, offset = 0) {
+    Types.validateOffset(buffer, offset + INT16_SIZE);
     return buffer.writeInt16BE(value, offset);
   }
 
   static decodeInt16(buffer, offset = 0) {
+    let endOffset = offset + INT16_SIZE;
+    Types.validateOffset(buffer, endOffset);
     return [
       buffer.readInt16BE(offset),
-      offset + 2
+      endOffset
     ];
   }
 
   static encodeInt64(value, buffer, offset = 0) {
-    return buffer.writeIntBE(value, offset, 6);
+    Types.validateOffset(buffer, offset + INT64_SIZE);
+    return buffer.writeIntBE(value, offset, INT64_SIZE);
   }
 
   static decodeInt64(buffer, offset = 0) {
+    let endOffset = offset + INT64_SIZE;
+    Types.validateOffset(buffer, endOffset);
     return [
-      buffer.readIntBE(offset, 6),
-      offset + 6
+      buffer.readIntBE(offset, INT64_SIZE),
+      endOffset
     ];
   }
 
@@ -103,5 +117,15 @@ module.exports = class Types {
       buffer.toString('utf8', offset, bytesEnd),
       bytesEnd
     ];
+  }
+
+  static validateOffset(buffer, offset) {
+    if(buffer.length < offset) {
+      throw new ParseError('Offset of ' +
+        offset +
+        ' is out of range of buffer with size' +
+        buffer.length
+      );
+    }
   }
 };
