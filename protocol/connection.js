@@ -37,49 +37,45 @@ module.exports = class Connection {
   }
 
   onData(data) {
-    setImmediate(() => {
 
-      if(this.build) {
-        if(data.length + this.response.accumulated > this.response.size) {
-          // this.response.data = Buffer.concat([this.response.data, data.slice()]);
-          // this.response.accumulated += data.length
-          throw new Error('walla');
-        } else {
-          this.response.data = Buffer.concat([this.response.data, data]);
-          this.response.accumulated += data.length
-        }
-
-        if(this.response.accumulated == this.response.size) {
-          this.build = false;
-          this.requests[this.response.header.correlationId](null, this.response.data);
-        }
-        return;
-      }
-
-      var header, offset, size;
-
-      [size, offset] = types.decodeInt32(data, 0);
-
-      [header, offset] = parser.decode(Header.response, data, offset);
-
-      if(this.requests.length < header.correlationId) {
-        return this.onError(new Error('Unknown correlation id received from broker'));
-      }
-
-      if(size !== data.length - 4) {
-        console.log('fat');
-        this.build = true;
-        this.response = {
-          header: header,
-          size: size,
-          accumulated: data.length - 4,
-          data: data.slice(offset)
-        };
+    if(this.build) {
+      if(data.length + this.response.accumulated > this.response.size) {
+        throw new Error('Ending response length did match reported size');
       } else {
-        this.build = false;
-        this.requests[header.correlationId](null, data.slice(offset));
+        this.response.data = Buffer.concat([this.response.data, data]);
+        this.response.accumulated += data.length;
       }
-    });
+
+      if(this.response.accumulated === this.response.size) {
+        // console.log('done');
+        this.build = false;
+        this.requests[this.response.header.correlationId](null, this.response.data);
+      }
+      return;
+    }
+
+    var header, offset, size;
+
+    [size, offset] = types.decodeInt32(data, 0);
+
+    [header, offset] = parser.decode(Header.response, data, offset);
+
+    if(this.requests.length < header.correlationId) {
+      return this.onError(new Error('Unknown correlation id received from broker'));
+    }
+
+    if(size !== data.length - 4) {
+      this.build = true;
+      this.response = {
+        header: header,
+        size: size,
+        accumulated: data.length - 4,
+        data: data.slice(offset)
+      };
+    } else {
+      this.build = false;
+      this.requests[header.correlationId](null, data.slice(offset));
+    }
   }
 
   onError(err) {
