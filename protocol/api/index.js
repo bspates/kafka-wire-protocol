@@ -7,5 +7,6 @@ module.exports = {
   Metadata: require('./metadata'),
   Header: require('./header'),
   Produce: require('./produce'),
-  Fetch: require('./fetch')
+  Fetch: require('./fetch'),
+  Message: require('./message')
 };

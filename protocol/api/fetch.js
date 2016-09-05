@@ -26,7 +26,7 @@ module.exports = {
         { partition: 'int32' },
         { errCode: 'int16' },
         { highWatermark: 'int64' },
-        { messageSet: 'bytes' }
+        { messageSet: 'messageSet' }
       ]
     ]
   ]

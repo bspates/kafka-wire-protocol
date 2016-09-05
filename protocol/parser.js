@@ -1,6 +1,7 @@
 var types = require('./types');
 var api = require('./api')
 var ParseError = require('./errors/parse');
+var crc32 = require('crc-32');
 
 module.exports = class Parser {
   static encode(data, template, buffer, offset) {
@@ -39,6 +40,10 @@ module.exports = class Parser {
           offset = types.encodeBytes(data[key], buffer, offset);
           break;
 
+        case 'messageSet':
+          offset = Parser.encodeMessage(data[key], buffer, offset);
+          break;
+
         case 'array':
           offset = types.encodeArraySize(data[key], buffer, offset);
           i++;
@@ -57,6 +62,7 @@ module.exports = class Parser {
 
   static decode(template, buffer, offset) {
     var result = {};
+
     for(var i = 0; i < template.length; i++) {
       let entry = template[i];
 
@@ -97,6 +103,29 @@ module.exports = class Parser {
           result[key] = value;
           break;
 
+        case 'messageSet':
+          // Take care of byte formatting
+          var size;
+          [size, offset] = types.decodeInt32(buffer, offset);
+
+          // Start single message parsing
+          const postCrcOffset = offset + api.Message.header_size;
+
+          var message;
+          [message, offset] = Parser.decode(api.Message.template, buffer, offset);
+
+          if(crc32.buf(buffer.slice(postCrcOffset, offset)) !== message.crc) {
+            throw new ParseError('Message CRC did not match calculated');
+          }
+
+          if(message.attributes !== 0) {
+            throw new ParseError('Unsupported message encoding received');
+          }
+
+          message.value = message.value.toString();
+          result[key] = message;
+          break;
+
         case 'array':
           result[key] = [];
           var length;
@@ -113,5 +142,43 @@ module.exports = class Parser {
       }
     }
     return [result, offset];
+  }
+
+  static encodeMessage(message, buffer, offset) {
+    var timestamp = new Date().getUTCMilliseconds();
+
+    let startOffset = offset;
+
+    // leave room at start for offset, size, and crc
+    let msgOffset = offset + api.Message.header_size;
+
+    let msgStruct = {
+      magicByte: 0, // version
+      attributes: 0, //TODO: pass in attributes from options
+      // timestamp: timestamp,
+      key: null, //TODO: what is keys for?
+      value: message
+    };
+
+    offset = Parser.encode(msgStruct, api.Message.body_template, buffer, msgOffset);
+
+    // encode message offset
+    var tmpOffset = startOffset + types.INT64_SIZE;
+
+    // encode message size
+    tmpOffset = types.encodeInt32(offset - startOffset, buffer, tmpOffset);
+
+    // encode crc
+    tmpOffset = types.encodeInt32(
+      crc32.buf(buffer.slice(msgOffset, offset)),
+      buffer,
+      tmpOffset
+    );
+
+    if(tmpOffset !== msgOffset) {
+      throw new ParseError('Invalid message header length');
+    }
+
+    return offset;
   }
 };

@@ -3,7 +3,6 @@ var api = require('./api');
 var parser = require('./parser');
 var definitions = require('./definitions');
 var types = require('./types');
-var Message = require('./message');
 
 // Always leave room for the size (int32) at the start of the request
 const REQUEST_OFFSET = 4;
@@ -62,11 +61,9 @@ module.exports = class Protocol {
       topics.forEach((topic) => {
         topic.data.forEach((data) => {
           let size = data.recordSet.reduce((prev, current) => {
-            return prev + Buffer.byteLength(current, 'utf8') + Message.BASE_MSG_SIZE;
+            return prev + Buffer.byteLength(current, 'utf8') + api.Message.base_size;
           }, 0);
-          data.messageSet = Buffer.alloc(size);
-          Message.encode(data.recordSet, data.messageSet, 0);
-          delete data.recordSet;
+          options.buffer = Buffer.alloc(size);
         });
       });
     } catch(err) {
@@ -91,18 +88,6 @@ module.exports = class Protocol {
 
     this.send(request, api.Fetch, (err, result) => {
       if(err) return cb(err);
-      try {
-        result.responses.forEach((response) => {
-          response.partitionResponses.forEach((partResp) => {
-            if(partResp.messageSet) {
-              partResp.messageSet = Message.decode(partResp.messageSet, 0);
-            }
-          });
-        });
-      } catch(err) {
-        return cb(err);
-      }
-
       cb(null, result);
     }, options);
   }

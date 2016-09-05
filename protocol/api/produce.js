@@ -14,7 +14,7 @@ module.exports = {
       { data: 'array' },
       [
         { partition: 'int32' },
-        { recordSet: 'bytes' }
+        { recordSet: 'messageSet' }
       ]
     ]
   ],
