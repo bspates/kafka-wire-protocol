@@ -10,25 +10,12 @@ const BASE_MSG_SIZE = types.INT64_SIZE + // offset
   types.INT8_SIZE + // attributes
   types.INT64_SIZE; // timestamp
 
-const PRE_TMPL_SIZE = types.INT64_SIZE + types.INT32_SIZE + types.INT32_SIZE;
+const MSG_HEADER_SIZE = types.INT64_SIZE + types.INT32_SIZE + types.INT32_SIZE;
 
 module.exports = class Message {
-  static get template() {
-    return [
-      { magicByte: 'int8' },
-      { attributes: 'int8' },
-      { timestamp: 'int64' },
-      { key: 'bytes' },
-      { value: 'bytes' }
-    ];
-  }
 
   static get BASE_MSG_SIZE() {
     return BASE_MSG_SIZE;
-  }
-
-  static get PRE_TMPL_SIZE() {
-    return PRE_TMPL_SIZE;
   }
 
   static encode(messageSet, buffer, offset) {
@@ -38,7 +25,7 @@ module.exports = class Message {
       let startOffset = offset;
 
       // leave room at start for offset, size, and crc
-      let msgOffset = offset + PRE_TMPL_SIZE;
+      let msgOffset = offset + MSG_HEADER_SIZE;
 
       let msgStruct = {
         magicByte: 0, // version
@@ -48,7 +35,13 @@ module.exports = class Message {
         value: message
       };
 
-      offset = parser.encode(msgStruct, Message.template, buffer, msgOffset);
+      offset = parser.encode(msgStruct, [
+        { magicByte: 'int8' },
+        { attributes: 'int8' },
+        { timestamp: 'int64' },
+        { key: 'bytes' },
+        { value: 'bytes' }
+      ], buffer, msgOffset);
 
       // encode message offset
       // var tmpOffset = types.encodeInt64(0, buffer, startOffset);
@@ -73,23 +66,26 @@ module.exports = class Message {
   }
 
   static decode(buffer, offset) {
-    var msgOffset, msgSize, crc, msgBuf;
+    const postCrcOffset = offset + MSG_HEADER_SIZE;
 
-    [msgOffset, offset] = types.decodeInt64(buffer, offset);
-    console.log(msgOffset);
-    [msgSize, offset] = types.decodeInt32(buffer, offset);
-    [crc, offset] = types.decodeInt32(buffer, offset);
+    var message;
+    [message, offset] = parser.decode([
+      { offset: 'int64' },
+      { size: 'int32' },
+      { crc: 'int32' },
+      { magicByte: 'int8' },
+      { attributes: 'int8' },
+      { timestamp: 'int64' },
+      { key: 'bytes' },
+      { value: 'bytes' }
+    ], buffer, offset);
 
-    msgBuf = buffer.slice(offset - 4, msgSize);
-
-    if(crc32.buf(msgBuf) !== crc) {
-      console.log(crc);
-      console.log(crc32.buf(msgBuf));
+    if(crc32.buf(buffer.slice(postCrcOffset, offset)) !== message.crc) {
       throw new ParseError('CRC did not match');
     }
 
-    [value] = parser.decode(Message.template, msgBuf, 0);
-    messages.push(value);
-    return messages;
+    message.value = message.value.toString();
+
+    return message;
   }
 }

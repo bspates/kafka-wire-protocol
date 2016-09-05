@@ -1,8 +1,8 @@
 var ParseError = require('./errors/parse');
 
+const INT64_SIZE = 8;
 const INT32_SIZE = 4;
 const INT16_SIZE = 2;
-const INT64_SIZE = 6;
 const INT8_SIZE = 1;
 
 module.exports = class Types {
@@ -146,11 +146,11 @@ module.exports = class Types {
   static decodeBytes(buffer, offset = 0) {
     var length;
     [length, offset] = Types.decodeInt32(buffer, offset);
-
     if(length === -1) return [null, offset];
     if(length === 0) return ['', offset];
 
     var bytesEnd = offset + length;
+    Types.validateOffset(buffer, bytesEnd);
     return [
       buffer.slice(offset, bytesEnd),
       bytesEnd
