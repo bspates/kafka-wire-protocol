@@ -26,9 +26,8 @@ module.exports = class Connection {
   send(data, cb) {
     this.requests.push(cb);
     setImmediate(() => {
-      this.socket.write(data, 'utf8', () => {
-        console.log('written out');
-        this.forceFlush(() => console.log('and done'));
+      this.socket.write(data, 'binary', () => {
+        this.forceFlush();
       });
     });
   }
@@ -39,14 +38,27 @@ module.exports = class Connection {
 
   onData(data) {
     setImmediate(() => {
-      console.log('data');
-      var header, offset, size;
-      [size, offset] = types.decodeInt32(data, 0);
 
-      if(size <= 0) {
-        console.log('empty response');
+      if(this.build) {
+        if(data.length + this.response.accumulated > this.response.size) {
+          // this.response.data = Buffer.concat([this.response.data, data.slice()]);
+          // this.response.accumulated += data.length
+          throw new Error('walla');
+        } else {
+          this.response.data = Buffer.concat([this.response.data, data]);
+          this.response.accumulated += data.length
+        }
+
+        if(this.response.accumulated == this.response.size) {
+          this.build = false;
+          this.requests[this.response.header.correlationId](null, this.response.data);
+        }
         return;
       }
+
+      var header, offset, size;
+
+      [size, offset] = types.decodeInt32(data, 0);
 
       [header, offset] = parser.decode(Header.response, data, offset);
 
@@ -54,7 +66,19 @@ module.exports = class Connection {
         return this.onError(new Error('Unknown correlation id received from broker'));
       }
 
-      this.requests[header.correlationId](null, data.slice(offset));
+      if(size !== data.length - 4) {
+        console.log('fat');
+        this.build = true;
+        this.response = {
+          header: header,
+          size: size,
+          accumulated: data.length - 4,
+          data: data.slice(offset)
+        };
+      } else {
+        this.build = false;
+        this.requests[header.correlationId](null, data.slice(offset));
+      }
     });
   }
 

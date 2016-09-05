@@ -3,18 +3,36 @@ var ParseError = require('./errors/parse');
 const INT32_SIZE = 4;
 const INT16_SIZE = 2;
 const INT64_SIZE = 6;
+const INT8_SIZE = 1;
 
 module.exports = class Types {
-  static encodeInt32(value, buffer, offset = 0) {
-    Types.validateOffset(buffer, offset + INT32_SIZE);
-    return buffer.writeInt32BE(value, offset);
+
+  static get INT8_SIZE() {
+    return INT8_SIZE;
   }
 
-  static decodeInt32(buffer, offset = 0) {
-    let endOffset = offset + INT32_SIZE;
+  static get INT16_SIZE() {
+    return INT16_SIZE;
+  }
+
+  static get INT32_SIZE() {
+    return INT32_SIZE;
+  }
+
+  static get INT64_SIZE() {
+    return INT64_SIZE;
+  }
+
+  static encodeInt8(value, buffer, offset = 0) {
+    Types.validateOffset(buffer, offset + INT8_SIZE);
+    return buffer.writeInt8(value, offset);
+  }
+
+  static decodeInt8(buffer, offset = 0) {
+    let endOffset = offset + INT8_SIZE;
     Types.validateOffset(buffer, endOffset);
     return [
-      buffer.readInt32BE(offset),
+      buffer.readInt8(offset),
       endOffset
     ];
   }
@@ -29,6 +47,20 @@ module.exports = class Types {
     Types.validateOffset(buffer, endOffset);
     return [
       buffer.readInt16BE(offset),
+      endOffset
+    ];
+  }
+
+  static encodeInt32(value, buffer, offset = 0) {
+    Types.validateOffset(buffer, offset + INT32_SIZE);
+    return buffer.writeInt32BE(value, offset);
+  }
+
+  static decodeInt32(buffer, offset = 0) {
+    let endOffset = offset + INT32_SIZE;
+    Types.validateOffset(buffer, endOffset);
+    return [
+      buffer.readInt32BE(offset),
       endOffset
     ];
   }
@@ -99,22 +131,28 @@ module.exports = class Types {
     if(bytes == null) {
       return Types.encodeInt32(-1, buffer, offset);
     }
-
-    var length = Buffer.byteLength(bytes, 'utf8');
-    offset = Types.encodeInt32(length, buffer, offset);
-    offset = offset + buffer.write(bytes, offset, length, 'utf8');
+    // console.log(bytes);
+    if(Buffer.isBuffer(bytes)) {
+      offset = Types.encodeInt32(bytes.length, buffer, offset);
+      offset = offset + bytes.copy(buffer, offset);
+    } else {
+      let length = Buffer.byteLength(bytes, 'utf8');
+      offset = Types.encodeInt32(length, buffer, offset);
+      offset = offset + buffer.write(bytes, offset, length, 'utf8');
+    }
     return offset;
   }
 
   static decodeBytes(buffer, offset = 0) {
     var length;
     [length, offset] = Types.decodeInt32(buffer, offset);
-    if(length === -1) return null
-    if(length === 0) return '';
-    var bytesEnd = offset + length;
 
+    if(length === -1) return [null, offset];
+    if(length === 0) return ['', offset];
+
+    var bytesEnd = offset + length;
     return [
-      buffer.toString('utf8', offset, bytesEnd),
+      buffer.slice(offset, bytesEnd),
       bytesEnd
     ];
   }
@@ -123,7 +161,7 @@ module.exports = class Types {
     if(buffer.length < offset) {
       throw new ParseError('Offset of ' +
         offset +
-        ' is out of range of buffer with size' +
+        ' is out of range of buffer with size ' +
         buffer.length
       );
     }

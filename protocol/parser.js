@@ -27,6 +27,10 @@ module.exports = class Parser {
           offset = types.encodeInt64(data[key], buffer, offset);
           break;
 
+        case 'int8':
+          offset = types.encodeInt8(data[key], buffer, offset);
+          break;
+
         case 'string':
           offset = types.encodeString(data[key], buffer, offset);
           break;
@@ -75,6 +79,11 @@ module.exports = class Parser {
 
         case 'int64':
           [value, offset] = types.decodeInt64(buffer, offset);
+          result[key] = value;
+          break;
+
+        case 'int8':
+          [value, offset] = types.decodeInt8(buffer, offset);
           result[key] = value;
           break;
 
