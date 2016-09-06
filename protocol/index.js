@@ -25,7 +25,7 @@ module.exports = class Protocol {
       buffer = Buffer.alloc(DEFAULT_BUFFER_SIZE);
     }
 
-    var startOffset = offset;
+    let startOffset = offset;
 
     try {
       offset = parser.encode({
@@ -35,7 +35,6 @@ module.exports = class Protocol {
         clientId: this.options.clientId
       }, api.Header.request, buffer, offset + REQUEST_OFFSET);
 
-      // console.log(buffer.read)
       offset = parser.encode(data, apiDef.request, buffer, offset);
 
       // Add size to begining of buffer
@@ -57,19 +56,6 @@ module.exports = class Protocol {
   }
 
   produce(topics, cb, options) {
-    try {
-      topics.forEach((topic) => {
-        topic.data.forEach((data) => {
-          let size = data.recordSet.reduce((prev, current) => {
-            return prev + Buffer.byteLength(current, 'utf8') + api.Message.base_size;
-          }, 0);
-          options.buffer = Buffer.alloc(size);
-        });
-      });
-    } catch(err) {
-      return cb(err);
-    }
-
     var request = {
       acks: this.options.acks,
       timeout: this.options.timeout,

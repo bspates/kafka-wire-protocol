@@ -108,12 +108,12 @@ module.exports = class Types {
 
   static encodeString(str, buffer, offset = 0) {
     if(str == null) {
-      return buffer.writeInt16BE(-1, offset);
+      return Types.encodeInt16(-1, buffer, offset);
     }
-    var length = Buffer.byteLength(str, 'utf8');
+    let length = Buffer.byteLength(str, 'utf8');
 
-    offset = buffer.writeInt16BE(length, offset);
-    return offset + buffer.write(str, offset, length);
+    offset = Types.encodeInt16(length, buffer, offset);
+    return offset + buffer.write(str, offset, length, 'utf8');
   }
 
   static decodeString(buffer, offset = 0) {
@@ -131,7 +131,7 @@ module.exports = class Types {
     if(bytes == null) {
       return Types.encodeInt32(-1, buffer, offset);
     }
-    // console.log(bytes);
+
     if(Buffer.isBuffer(bytes)) {
       offset = Types.encodeInt32(bytes.length, buffer, offset);
       offset = offset + bytes.copy(buffer, offset);
@@ -146,8 +146,7 @@ module.exports = class Types {
   static decodeBytes(buffer, offset = 0) {
     var length;
     [length, offset] = Types.decodeInt32(buffer, offset);
-    if(length === -1) return [null, offset];
-    if(length === 0) return ['', offset];
+    if(length <= 0) return [null, offset];
 
     var bytesEnd = offset + length;
     Types.validateOffset(buffer, bytesEnd);

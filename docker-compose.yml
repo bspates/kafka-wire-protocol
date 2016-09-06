@@ -5,7 +5,7 @@ services:
     ports:
       - 2181:2181
 
-  broker_0:
+  broker0:
     image: ches/kafka:0.10.0.1
     volumes:
       - ./data:/data
@@ -14,16 +14,18 @@ services:
       - 9092:9092
       - 7203:7203
     environment:
-      - KAFKA_ADVERTISED_HOST_NAME=kafka
+      - KAFKA_ADVERTISED_HOST_NAME=broker0
       - ZOOKEEPER_IP=zookeeper
       - KAFKA_BROKER_ID=0
     depends_on:
       - zookeeper
 
-  broker_1:
+  broker1:
     image: ches/kafka:0.10.0.1
+    ports:
+      - 9093:9092
     environment:
-      - KAFKA_ADVERTISED_HOST_NAME=broker
+      - KAFKA_ADVERTISED_HOST_NAME=broker1
       - ZOOKEEPER_IP=zookeeper
       - KAFKA_BROKER_ID=1
     depends_on:

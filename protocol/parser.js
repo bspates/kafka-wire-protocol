@@ -41,7 +41,36 @@ module.exports = class Parser {
           break;
 
         case 'messageSet':
-          offset = Parser.encodeMessage(data[key], buffer, offset);
+          var timestamp = new Date().getTime();
+
+          // Leave room for byte size
+          var sizeOffset = offset;
+          offset += types.INT32_SIZE;
+
+          // Grab current offset for writing byte size at the end
+          var startOffset = offset;
+
+          data[key].forEach((message) => {
+            let msgEndOffset = Parser.encode({
+              magicByte: api.Message.version,
+              attributes: 0, // TODO: let this be passed in through message
+              timestamp: timestamp,
+              key: null,
+              value: message.value
+            }, api.Message.body, buffer, offset + api.Message.header_size);
+
+
+            Parser.encode({
+              offset: 0,
+              size: msgEndOffset - offset,
+              crc: crc32.buf(buffer.slice(offset + api.Message.header_size, msgEndOffset))
+            }, api.Message.header, buffer, offset);
+
+            offset = msgEndOffset;
+          });
+
+          // Write byte size
+          types.encodeInt32(offset - startOffset, buffer, sizeOffset);
           break;
 
         case 'array':
@@ -107,23 +136,32 @@ module.exports = class Parser {
           // Take care of byte formatting
           var size;
           [size, offset] = types.decodeInt32(buffer, offset);
-
-          // Start single message parsing
-          const postCrcOffset = offset + api.Message.header_size;
-
-          var message;
-          [message, offset] = Parser.decode(api.Message.template, buffer, offset);
-
-          if(crc32.buf(buffer.slice(postCrcOffset, offset)) !== message.crc) {
-            throw new ParseError('Message CRC did not match calculated');
+          if(size <= 0) {
+            result[key] = null;
+            break;
           }
 
-          if(message.attributes !== 0) {
-            throw new ParseError('Unsupported message encoding received');
-          }
+          let endOffset = offset + size;
+          var messages = [];
+          while(endOffset > offset) {
+            // Start single message parsing
+            let postCrcOffset = offset + api.Message.header_size;
 
-          message.value = message.value.toString();
-          result[key] = message;
+            var message;
+            [message, offset] = Parser.decode(api.Message.template, buffer, offset);
+
+            if(crc32.buf(buffer.slice(postCrcOffset, offset)) !== message.crc) {
+              throw new ParseError('Message CRC did not match calculated');
+            }
+
+            if(message.attributes !== 0) {
+              throw new ParseError('Unsupported message encoding received');
+            }
+
+            message.value = message.value.toString();
+            messages.push(message);
+          }
+          result[key] = messages;
           break;
 
         case 'array':
@@ -142,43 +180,5 @@ module.exports = class Parser {
       }
     }
     return [result, offset];
-  }
-
-  static encodeMessage(message, buffer, offset) {
-    var timestamp = new Date().getUTCMilliseconds();
-
-    let startOffset = offset;
-
-    // leave room at start for offset, size, and crc
-    let msgOffset = offset + api.Message.header_size;
-
-    let msgStruct = {
-      magicByte: 0, // version
-      attributes: 0, //TODO: pass in attributes from options
-      // timestamp: timestamp,
-      key: null, //TODO: what is keys for?
-      value: message
-    };
-
-    offset = Parser.encode(msgStruct, api.Message.body_template, buffer, msgOffset);
-
-    // encode message offset
-    var tmpOffset = startOffset + types.INT64_SIZE;
-
-    // encode message size
-    tmpOffset = types.encodeInt32(offset - startOffset, buffer, tmpOffset);
-
-    // encode crc
-    tmpOffset = types.encodeInt32(
-      crc32.buf(buffer.slice(msgOffset, offset)),
-      buffer,
-      tmpOffset
-    );
-
-    if(tmpOffset !== msgOffset) {
-      throw new ParseError('Invalid message header length');
-    }
-
-    return offset;
   }
 };
