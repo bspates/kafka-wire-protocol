@@ -1,4 +1,5 @@
 var ParseError = require('./errors/parse');
+var long = require('long');
 
 const INT64_SIZE = 8;
 const INT32_SIZE = 4;
@@ -67,14 +68,19 @@ module.exports = class Types {
 
   static encodeInt64(value, buffer, offset = 0) {
     Types.validateOffset(buffer, offset + INT64_SIZE);
-    return buffer.writeIntBE(value, offset, INT64_SIZE);
+    let int64 = long.fromValue(value);
+    offset = Types.encodeInt32(int64.high, buffer, offset);
+    return Types.encodeInt32(int64.low, buffer, offset);
   }
 
   static decodeInt64(buffer, offset = 0) {
     let endOffset = offset + INT64_SIZE;
     Types.validateOffset(buffer, endOffset);
+    var high, low;
+    [high, offset] = Types.decodeInt32(buffer, offset);
+    [low, offset] = Types.decodeInt32(buffer, offset);
     return [
-      buffer.readIntBE(offset, INT64_SIZE),
+      long.fromBits(low, high),
       endOffset
     ];
   }
