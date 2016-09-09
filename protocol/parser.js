@@ -1,7 +1,7 @@
 var types = require('./types');
-var api = require('./api')
+var api = require('./api');
 var ParseError = require('./errors/parse');
-var crc32 = require('crc-32');
+var crc32 = require('buffer-crc32');
 
 module.exports = class Parser {
   static encode(data, template, buffer, offset) {
@@ -14,6 +14,9 @@ module.exports = class Parser {
         throw new ParseError('Invalid api template');
       }
       key = key[0];
+      if(!(key in data)) {
+        throw new ParseError('Missing required field: ' + key);
+      }
 
       switch(entry[key]) {
         case 'int32':
@@ -40,9 +43,7 @@ module.exports = class Parser {
           offset = types.encodeBytes(data[key], buffer, offset);
           break;
 
-        case 'messageSet':
-          var timestamp = new Date().getTime();
-
+        case 'messageSet': {
           // Leave room for byte size
           var sizeOffset = offset;
           offset += types.INT32_SIZE;
@@ -51,27 +52,27 @@ module.exports = class Parser {
           var startOffset = offset;
 
           data[key].forEach((message) => {
+            let msgStartOffset = offset + api.Message.header_size;
             let msgEndOffset = Parser.encode({
               magicByte: api.Message.version,
               attributes: 0, // TODO: let this be passed in through message
-              timestamp: timestamp,
+              timestamp: new Date().getTime(),
               key: null,
               value: message.value
-            }, api.Message.body, buffer, offset + api.Message.header_size);
-
+            }, api.Message.body, buffer, msgStartOffset);
 
             Parser.encode({
               offset: 0,
               size: msgEndOffset - offset,
-              crc: crc32.buf(buffer.slice(offset + api.Message.header_size, msgEndOffset))
+              crc: crc32.signed(buffer.slice(msgStartOffset, msgEndOffset))
             }, api.Message.header, buffer, offset);
-
             offset = msgEndOffset;
           });
 
           // Write byte size
           types.encodeInt32(offset - startOffset, buffer, sizeOffset);
           break;
+        }
 
         case 'array':
           offset = types.encodeArraySize(data[key], buffer, offset);
@@ -132,9 +133,9 @@ module.exports = class Parser {
           result[key] = value;
           break;
 
-        case 'messageSet':
+        case 'messageSet': {
           // Take care of byte formatting
-          var size;
+          let size;
           [size, offset] = types.decodeInt32(buffer, offset);
           if(size <= 0) {
             result[key] = null;
@@ -150,7 +151,7 @@ module.exports = class Parser {
             var message;
             [message, offset] = Parser.decode(api.Message.template, buffer, offset);
 
-            if(crc32.buf(buffer.slice(postCrcOffset, offset)) !== message.crc) {
+            if(crc32.signed(buffer.slice(postCrcOffset, offset)) !== message.crc) {
               throw new ParseError('Message CRC did not match calculated');
             }
 
@@ -163,8 +164,9 @@ module.exports = class Parser {
           }
           result[key] = messages;
           break;
+        }
 
-        case 'array':
+        case 'array': {
           result[key] = [];
           var length;
           [length, offset] = types.decodeArraySize(buffer, offset);
@@ -174,7 +176,8 @@ module.exports = class Parser {
             result[key].push(value);
           }
           break;
-
+        }
+        
         default:
           throw new ParseError('Invalid type: ' + entry[key]);
       }

@@ -96,7 +96,7 @@ module.exports = class Types {
   static decodeArray(typeMethod, buffer, offset = 0) {
     var length, value;
     [length, offset] = Types.decodeInt32(buffer, offset);
-    var resultArr = []
+    var resultArr = [];
     for(var i = 0; i < length; i++) {
       [value, offset] = typeMethod(buffer, offset);
       resultArr.push(value);

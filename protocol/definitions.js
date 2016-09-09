@@ -19,7 +19,7 @@ const API_KEYS = [
   'ListGroups',
   'SaslHandshake',
   'ApiVersions'
-]
+];
 
 const ERRORS = [
   {

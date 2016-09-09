@@ -1,7 +1,3 @@
-var Header = require('./header');
-var definitions = require('../definitions');
-var types = require('../types');
-
 module.exports = {
   name: 'Produce',
   version: 2,

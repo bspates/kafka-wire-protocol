@@ -26,6 +26,7 @@ const BODY_TEMPLATE = [
 const TEMPLATE = HEADER_TEMPLATE.concat(BODY_TEMPLATE);
 
 module.exports = {
+  name: 'Message',
   version: 1,
   header_size: MSG_HEADER_SIZE,
   base_size: BASE_MSG_SIZE,

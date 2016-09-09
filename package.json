@@ -4,7 +4,8 @@
   "description": "Pure JS Kafka Client (batteries not included) ",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint ./"
   },
   "keywords": [
     "kafka",
@@ -22,6 +23,7 @@
     "long": "^3.2.0"
   },
   "devDependencies": {
+    "eslint": "^3.4.0",
     "int64-buffer": "^0.1.9",
     "mocha": "^3.0.2"
   }
