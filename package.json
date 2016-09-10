@@ -6,7 +6,7 @@
   "repository": "bspates/kafkaesq",
   "scripts": {
     "test": "mocha",
-    "lint": "eslint ./"
+    "lint": "eslint ./lib"
   },
   "keywords": [
     "kafka",

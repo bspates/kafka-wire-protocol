@@ -10,6 +10,7 @@ services:
       - ./test:/srv/kafkaesq/test
       - ./dev:/srv/kafkaesq/dev
       - ./package.json:/srv/kafkaesq/package.json
+      - ./.eslintrc.json:/srv/kafkaesq/.eslintrc.json
 
   zookeeper:
     image: jplock/zookeeper:3.4.6
