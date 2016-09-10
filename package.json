@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Pure JS Kafka Client (batteries not included) ",
   "main": "index.js",
+  "repository": "bspates/kafkaesq",
   "scripts": {
     "test": "mocha",
     "lint": "eslint ./"
