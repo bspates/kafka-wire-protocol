@@ -1,5 +1,5 @@
 var assert = require('assert');
-var Types = require('../protocol/types');
+var Types = require('../lib/protocol/types');
 var { Int64BE } = require('int64-buffer');
 
 describe('The Types class', function() {
@@ -44,7 +44,7 @@ describe('The Types class', function() {
         0,
         1,
         -1,
-        // Both values will loose preision when cast to Number (Double)
+        // Both values will loose precision when cast to Number (Double)
         new Int64BE("9223372036854775807").toNumber(),
         new Int64BE("-9223372036854775808").toNumber()
       ]
@@ -92,7 +92,6 @@ describe('The Types class', function() {
       assert.equal(decoder(buf, 0), value);
     };
 
-    // Happy path boundary testing
     testParams.forEach((test) => {
       for(let value of test.pkg.values) {
         it(`${value} as a ${test.pkg.type} should be decodable using the related buffer read method`, function() {
@@ -137,7 +136,6 @@ describe('The Types class', function() {
       assert.equal(result, value);
     };
 
-    // Happy path boundary testing
     testParams.forEach((test) => {
       for(let value of test.pkg.values) {
         it(`${value} as a ${test.pkg.type} should not alter the value`, function() {
