@@ -1,3 +1,3 @@
 module.exports = {
-  Protocol: require('./protocol')
+  Protocol: require('./lib/protocol')
 };
