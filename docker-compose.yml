@@ -8,8 +8,8 @@ services:
   broker0:
     image: ches/kafka:0.10.0.1
     volumes:
-      - ./data:/data
-      - ./logs:/logs
+      - ./broker0/data:/data
+      - ./broker0/logs:/logs
     ports:
       - 9092:9092
       - 7203:7203
@@ -24,6 +24,9 @@ services:
     image: ches/kafka:0.10.0.1
     ports:
       - 9093:9092
+    volumes:
+      - ./broker1/data:/data
+      - ./broker1/logs:/logs
     environment:
       - KAFKA_ADVERTISED_HOST_NAME=broker1
       - ZOOKEEPER_IP=zookeeper
