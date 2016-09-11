@@ -15,7 +15,8 @@
     "subscribe",
     "pubsub",
     "queues",
-    "messages"
+    "messages",
+    "client"
   ],
   "author": "Brian Spates",
   "license": "MIT",
