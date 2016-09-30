@@ -6,7 +6,7 @@ var defs = require('../lib/protocol/definitions');
 var buf = Buffer.alloc(2400);
 
 // Mock out data for a "simple template" (ie No message sets)
-let buildData = function(template) {
+let buildTemplateData = function(template) {
   var res = {};
   for(var i = 0; i < template.length; i++) {
     var key = Object.keys(template[i]);
@@ -59,7 +59,7 @@ describe('The api templates', () => {
       if(api[template] == null) continue;
 
       it('data should stay consistent across processing for Template: ' + template, function(curTemplate) {
-        var reqData = buildData(curTemplate.request);
+        var reqData = buildTemplateData(curTemplate.request);
         var reqRes;
         parser.encode(reqData, curTemplate.request, buf, 0);
         [reqRes] = parser.decode(curTemplate.request, buf, 0);
@@ -78,7 +78,7 @@ describe('The api templates', () => {
       if(api[template] == null) continue;
 
       it('data should stay consistent across processing for Template: ' + template, function(curTemplate) {
-        var resData = buildData(curTemplate.response);
+        var resData = buildTemplateData(curTemplate.response);
         var resRes;
         parser.encode(resData, curTemplate.response, buf, 0);
         [resRes] = parser.decode(curTemplate.response, buf, 0);
