@@ -21,7 +21,7 @@ let buildTemplateData = function(template) {
 
       case 'array':
         i++;
-        res[key] = [buildData(template[i])];
+        res[key] = [buildTemplateData(template[i])];
         break;
 
       case 'string':
@@ -34,7 +34,7 @@ let buildTemplateData = function(template) {
 
       case 'object':
         i++;
-        res[key] = buildData(template[i]);
+        res[key] = buildTemplateData(template[i]);
         break;
 
       case 'error':
