@@ -1,4 +1,4 @@
-var api = require('../lib/protocol/api');
+var api = require('../lib/protocol/binaryTemplates/api');
 var parser = require('../lib/protocol/parser');
 var assert = require('assert');
 var defs = require('../lib/protocol/definitions');
@@ -51,9 +51,9 @@ let buildTemplateData = function(template) {
 describe('The api templates', () => {
   describe('when encoding/decoding the requests', () => {
     for(var template in api) {
-      // Ignore header and message since they do not have request response templates
-      // Ignore fetch and produce because they have message sets
-      if(['Header', 'Message', 'Produce'].includes(template)) continue;
+
+      // Ignore produce because it has message sets
+      if(template === 'Produce') continue;
 
       // Ignore unimplemented api messages
       if(api[template] == null) continue;
@@ -70,9 +70,9 @@ describe('The api templates', () => {
 
   describe('when encoding/decoding the responses', () => {
     for(var template in api) {
-      // Ignore header and message since they do not have request response templates
-      // Ignore fetch and produce because they have message sets
-      if(['Header', 'Message', 'Fetch'].includes(template)) continue;
+
+      // Ignore Fetch because it has message sets
+      if(template === 'Fetch') continue;
 
       // Ignore unimplemented api messages
       if(api[template] == null) continue;
