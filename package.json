@@ -1,6 +1,6 @@
 {
   "name": "kafka-wire-protocol",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Pure JS Kafka Wire Protocol Library",
   "main": "index.js",
   "repository": "bspates/kafkaesq",
@@ -28,5 +28,8 @@
     "eslint": "^3.4.0",
     "int64-buffer": "^0.1.9",
     "mocha": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=6.0.0"
   }
 }

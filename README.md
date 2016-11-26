@@ -1,13 +1,99 @@
 [![Build Status](https://travis-ci.org/bspates/kafkaesq.svg?branch=master)](https://travis-ci.org/bspates/kafkaesq)
 
-Kafkaesq
-========
 
-**This is some pre-alpha shizz**
+kafka-wire-protocol
+===================
 
-Goals
-* Look to the future! Don't try to be backwards compatible. This project targets Kafka >= 0.10 and Node >= 6.5 (es6 thank you) 
-* Kafka clients are complex in nature, so to avoid dependency bloat only use non-core libs when unavoidable. (ie when rolling my own would be stupid)
-* Avoid creating more complexity than already exists in the Kafka ecosystem. Don't invent new producing/consuming schemes.
-* Try to have as few buffer allocations as possible. In practice this means pre-allocating "the right" amount of memory to begin with.
-* Don't provide all the solutions but allow for pluggable libraries. (ie this lib does not come with snappy compression, but should support its use)
+A pure JS (ES6) implementation of the Kafka wire protocol as described [here](https://kafka.apache.org/protocol).
+
+**This is not full Kafka client, just an implementation of the base tcp wire protocol**. This library focuses on supporting all APIs and all versions described in the wire protocol. The purpose of this library is to create a common building block for JS Kafka clients and as a general Kafka utility. This library does not work with Zookeeper directly.
+
+Library Goals
+-------------
+* Use pure ES6 JS.
+* Have as few external dependencies as possible
+  * Currently only dependencies are a CRC32 library and a library to handle 64 bit integers in JS.
+* Support all versions of Kafka APIs
+  * Since there is no Zookeeper support in this library certain operations are not possible in older versions of Kafka that required communication with Zookeeper.
+* Only implement the wire protocol. (Avoid scope creep).
+  * Allow these decisions to be made independently of this library
+      * Memory management
+      * Connection management
+      * ...
+
+Examples
+--------
+### Using the protocol directly with your own tcp socket
+
+```javascript
+var { Protocol } = require('kafka-wire-protocol');
+
+var protocol = new Protocol({
+  clientId: 'my-test-kafka-client'
+});
+
+socket = net.connect({
+  host: 'localhost', // assuming your running Kafka locally
+  port: 9092 // default Kafka port
+}, () => {
+  socket.on('data', protocol.response);
+  socket.on('error', () => console.log('error'));
+
+  // Build Metadata request buffer
+  var reqBuf = this.protocol.request(
+    'Metadata', // Name of API
+    { // data structured as specified by wire protocol docs
+      // to be parsed into binary message format
+      topics: [
+        // Assuming you've created this topic already
+        { topic: 'my-test-topic' }
+      ]
+    },
+    Buffer.alloc(2400), // Buffer to parse data into
+    0, // Starting offset to use in buffer provided
+
+    // Callback to invoke once entire response is received
+    // and parsed
+    (err, result) => {
+      if(err) throw err;
+
+      // Send metadata response to stdout
+      console.log(JSON.stringify(result, null, 2));
+    }
+  );
+
+  this.socket.write(reqBuf, 'binary', () => {
+    // Kafka's tcp client seems to need help understanding a
+    // message is over
+    this.socket.write("\n\n\n\n", 'utf8');
+  });
+});
+
+```
+
+### Doing the same thing with the SimpleClient
+**WARNING SimpleClient is not for Production use**
+```javascript
+var { SimpleClient } = require('kafka-wire-protocol');
+
+var client = new SimpleClient({
+  host: 'localhost', // Assuming Kafka is running locally
+  port: 9092, // Default Kafka port
+  clientId: 'my-test-kafka-client',
+  timeout: 1000,
+  acks: 1 // Level of broker persistence guarantee
+});
+
+client.request(
+  'Metadata', // API name
+  { // Data to be sent
+    topics: [
+      { topic: 'my-test-topic' }
+    ]
+  }, (err, result) => {
+    if(err) throw err;
+    console.log(JSON.stringify(result, null, 2));
+  }
+)
+
+```
