@@ -63,7 +63,7 @@ socket = net.connect({
   );
 
   this.socket.write(reqBuf, 'binary', () => {
-    // Kafka's tcp client seems to need help understanding a
+    // Kafka brokers seem to need help understanding a
     // message is over
     this.socket.write("\n\n\n\n", 'utf8');
   });
@@ -94,6 +94,6 @@ client.request(
     if(err) throw err;
     console.log(JSON.stringify(result, null, 2));
   }
-)
+);
 
 ```
