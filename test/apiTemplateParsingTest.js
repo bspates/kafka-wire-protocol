@@ -59,11 +59,19 @@ describe('The api templates', () => {
       if(api[template] == null) continue;
 
       it('data should stay consistent across processing for Template: ' + template, function(curTemplate) {
-        var reqData = buildTemplateData(curTemplate.request);
-        var reqRes;
-        parser.encode(reqData, curTemplate.request, buf, 0);
-        [reqRes] = parser.decode(curTemplate.request, buf, 0);
-        assert.deepEqual(reqRes, reqData);
+        let test = (tmpl) => {
+          var reqData = buildTemplateData(tmpl.request);
+          var reqRes;
+          parser.encode(reqData, tmpl.request, buf, 0);
+          [reqRes] = parser.decode(tmpl.request, buf, 0);
+          assert.deepEqual(reqRes, reqData);
+        };
+        if(curTemplate.versions) {
+          curTemplate.versions.forEach(test);
+        } else {
+          test(curTemplate);
+        }
+
       }.bind(this, api[template]));
     }
   });
@@ -78,11 +86,19 @@ describe('The api templates', () => {
       if(api[template] == null) continue;
 
       it('data should stay consistent across processing for Template: ' + template, function(curTemplate) {
-        var resData = buildTemplateData(curTemplate.response);
-        var resRes;
-        parser.encode(resData, curTemplate.response, buf, 0);
-        [resRes] = parser.decode(curTemplate.response, buf, 0);
-        assert.deepEqual(resRes, resData);
+        let test = (tmpl) => {
+          var resData = buildTemplateData(tmpl.response);
+          var resRes;
+          parser.encode(resData, tmpl.response, buf, 0);
+          [resRes] = parser.decode(tmpl.response, buf, 0);
+          assert.deepEqual(resRes, resData);
+        };
+
+        if(curTemplate.versions) {
+          curTemplate.versions.forEach(test);
+        } else {
+          test(curTemplate);
+        }
       }.bind(this, api[template]));
     }
   });
