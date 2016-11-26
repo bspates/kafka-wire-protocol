@@ -1,7 +1,7 @@
 {
-  "name": "kafkaesq",
+  "name": "kafka-wire-protocol",
   "version": "0.0.1",
-  "description": "Pure JS Kafka Client (batteries not included) ",
+  "description": "Pure JS Kafka Wire Protocol Library",
   "main": "index.js",
   "repository": "bspates/kafkaesq",
   "scripts": {
