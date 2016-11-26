@@ -10,7 +10,7 @@ A pure JS (ES6) implementation of the Kafka wire protocol as described [here](ht
 
 Library Goals
 -------------
-* Use pure ES6 JS.
+* Use pure JS (ES6). 
 * Have as few external dependencies as possible
   * Currently only dependencies are a CRC32 library and a library to handle 64 bit integers in JS.
 * Support all versions of Kafka APIs
