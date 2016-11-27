@@ -1,5 +1,5 @@
 FROM node:wheezy
-WORKDIR /srv/kafkaesq
-COPY ./package.json /srv/kafkaesq
+WORKDIR /srv/kafka-wire-protocol
+COPY ./package.json /srv/kafka-wire-protocol
 RUN npm install -q
 CMD npm test
