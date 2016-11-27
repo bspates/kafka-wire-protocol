@@ -10,7 +10,7 @@ A pure JS (ES6) implementation of the Kafka wire protocol as described [here](ht
 
 Library Goals
 -------------
-* Use pure JS (ES6). 
+* Use pure JS (ES6).
 * Have as few external dependencies as possible
   * Currently only dependencies are a CRC32 library and a library to handle 64 bit integers in JS.
 * Support all versions of Kafka APIs
@@ -26,21 +26,25 @@ Examples
 ### Using the protocol directly with your own tcp socket
 
 ```javascript
+var net = require('net');
 var { Protocol } = require('kafka-wire-protocol');
 
 var protocol = new Protocol({
   clientId: 'my-test-kafka-client'
 });
 
-socket = net.connect({
+var socket = net.connect({
   host: 'localhost', // assuming your running Kafka locally
   port: 9092 // default Kafka port
 }, () => {
+  
+  // Attach the protocol.response handler method to the
+  // on 'data' event to accumulate and parse API responses
   socket.on('data', protocol.response);
   socket.on('error', () => console.log('error'));
 
   // Build Metadata request buffer
-  var reqBuf = this.protocol.request(
+  var reqBuf = protocol.request(
     'Metadata', // Name of API
     { // data structured as specified by wire protocol docs
       // to be parsed into binary message format
@@ -62,10 +66,10 @@ socket = net.connect({
     }
   );
 
-  this.socket.write(reqBuf, 'binary', () => {
+  socket.write(reqBuf, 'binary', () => {
     // Kafka brokers seem to need help understanding a
     // message is over
-    this.socket.write("\n\n\n\n", 'utf8');
+    socket.write("\n\n\n\n", 'utf8');
   });
 });
 
