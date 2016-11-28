@@ -2,15 +2,18 @@ version: '2'
 services:
   test:
     build: .
+    environment:
+      BOOTSTRAP_HOST: broker0
+      BOOTSTRAP_PORT: 9092
     depends_on:
       - broker0
       - broker1
     volumes:
-      - ./lib:/srv/kafkaesq/lib
-      - ./test:/srv/kafkaesq/test
-      - ./dev:/srv/kafkaesq/dev
-      - ./package.json:/srv/kafkaesq/package.json
-      - ./.eslintrc.json:/srv/kafkaesq/.eslintrc.json
+      - ./lib:/srv/kafka-wire-protocol/lib
+      - ./test:/srv/kafka-wire-protocol/test
+      - ./dev:/srv/kafka-wire-protocol/dev
+      - ./package.json:/srv/kafka-wire-protocol/package.json
+      - ./.eslintrc.json:/srv/kafka-wire-protocol/.eslintrc.json
 
   zookeeper:
     image: jplock/zookeeper:3.4.6

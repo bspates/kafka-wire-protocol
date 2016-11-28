@@ -37,7 +37,7 @@ var socket = net.connect({
   host: 'localhost', // assuming your running Kafka locally
   port: 9092 // default Kafka port
 }, () => {
-  
+
   // Attach the protocol.response handler method to the
   // on 'data' event to accumulate and parse API responses
   socket.on('data', protocol.response);
@@ -86,18 +86,18 @@ var client = new SimpleClient({
   clientId: 'my-test-kafka-client',
   timeout: 1000,
   acks: 1 // Level of broker persistence guarantee
+}, () => { // callback invoked once connection is made
+  client.request(
+    'Metadata', // API name
+    { // Data to be sent
+      topics: [
+        { topic: 'my-test-topic' }
+      ]
+    }, (err, result) => {
+      if(err) throw err;
+      console.log(JSON.stringify(result, null, 2));
+    }
+  );
 });
-
-client.request(
-  'Metadata', // API name
-  { // Data to be sent
-    topics: [
-      { topic: 'my-test-topic' }
-    ]
-  }, (err, result) => {
-    if(err) throw err;
-    console.log(JSON.stringify(result, null, 2));
-  }
-);
 
 ```
