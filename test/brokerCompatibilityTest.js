@@ -156,4 +156,50 @@ describe('When using the API -> ', function() {
       });
     });
   });
+
+  describe('Fetch', function() {
+    it('should retrieve any published messages at offset specified', function(done) {
+      this.timeout(4000);
+      client.fetch([
+        {
+          topic: topic,
+          partitions: [
+            {
+              partition: 0,
+              fetchOffset: 0,
+              maxBytes: 1028
+            }
+          ]
+        }
+      ], (err, result) => {
+        if(err) return done(err);
+        assert.deepEqual(result, {
+          "responses": [
+            {
+              "topic": "mocha-test",
+              "partitionResponses": [
+                {
+                  "partition": 0,
+                  "error": {
+                    "name": "NONE",
+                    "code": 0,
+                    "retry": false,
+                    "message": ""
+                  },
+                  "highWatermark": 1,
+                  "recordSet": [
+                    {
+                      "key": null,
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        });
+        done()
+      })
+    });
+  });
 });
