@@ -19,6 +19,7 @@ before_install:
 
 script:
   - npm run lint
+  - docker-compose up -d --build --force-recreate
   - docker-compose run --rm test
 
 after_script:
