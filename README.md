@@ -6,6 +6,8 @@ kafka-wire-protocol
 
 A pure JS (ES6) implementation of the Kafka wire protocol as described [here](https://kafka.apache.org/protocol).
 
+`npm install --save kafka-wire-protocol`
+
 **This is not full Kafka client, just an implementation of the base tcp wire protocol**. This library focuses on supporting all APIs and all versions described in the wire protocol. The purpose of this library is to create a common building block for JS Kafka clients and as a general Kafka utility. This library does not work with Zookeeper directly.
 
 Library Goals
