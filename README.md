@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/bspates/kafkaesq.svg?branch=master)](https://travis-ci.org/bspates/kafkaesq)
+[![Build Status](https://travis-ci.org/bspates/kafka-wire-protocol.svg?branch=master)](https://travis-ci.org/bspates/kafka-wire-protocol)
 
 
 kafka-wire-protocol
