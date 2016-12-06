@@ -1,9 +1,9 @@
 {
   "name": "kafka-wire-protocol",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pure JS Kafka Wire Protocol Library",
   "main": "index.js",
-  "repository": "bspates/kafkaesq",
+  "repository": "bspates/kafka-wire-protocol",
   "scripts": {
     "test": "mocha",
     "lint": "eslint ./lib"
