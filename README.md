@@ -4,7 +4,7 @@
 kafka-wire-protocol
 ===================
 
-A pure JS (ES6) implementation of the Kafka wire protocol as described [here](https://kafka.apache.org/protocol).
+A pure JS (ES6) implementation of the Kafka wire protocol as described [here](https://kafka.apache.org/protocol). Deviations from those docs are described [here](#deviations-from-kafka-docs)
 
 `npm install --save kafka-wire-protocol`
 
@@ -103,3 +103,18 @@ var client = new SimpleClient({
 });
 
 ```
+
+### Deviations from Kafka docs
+* All fields in requests/responses are in camelCase instead of the snake_case seen in the docs. (I'm open to changing this or supporting both)
+* Error code fields are replaced with an error object like this:
+```json
+{
+    "error": {
+      "name": "OFFSET_OUT_OF_RANGE",
+      "code": 1,
+      "retry": false,
+      "message": "The requested offset is not within the range of offsets maintained by the server."
+    }
+}
+```
+All api error objects can be found in the lib/protocol/definitions.js file.
