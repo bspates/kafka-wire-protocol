@@ -1,6 +1,6 @@
 {
   "name": "kafka-wire-protocol",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Pure JS Kafka Wire Protocol Library",
   "main": "index.js",
   "repository": "bspates/kafka-wire-protocol",
